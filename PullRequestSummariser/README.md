@@ -121,33 +121,131 @@ Optional flags:
 
 Output is written to `summaries/{owner}_{repo}/` as one markdown file per pull request plus a `repo_summary.md` file.
 
-## What Gets Extracted
+## Output Format
 
-Per pull request:
-- Metadata (title, number, state, author, dates, labels, milestone)
-- Description/body
-- Commit list with messages and authors
-- File changes with additions, deletions, and patches
-- Review comments (inline code review)
-- Issue comments (general discussion)
-- Review decisions (approved, changes requested, etc.)
+### Step 1 Output: JSON (one file per pull request)
 
-## What Gets Summarised
+Each pull request is saved as `output/{owner}_{repo}/pr_{number}.json` containing:
 
-Per pull request markdown:
-- **Overview** — title, author, dates, status, labels
-- **Intent** — PR description and commit messages
-- **Scope of Changes** — files modified, lines changed, languages
-- **Key Diffs** — actual code changes (truncated if large)
-- **Discussion** — review decisions, code review comments, general comments
-- **Verdict** — final status (merged, closed, open)
+- **Metadata** — title, number, state, author, created/updated/merged/closed dates, labels, milestone
+- **Body** — the full pull request description
+- **Commits** — SHA, message, author, and date for each commit
+- **Files** — filename, status (added/modified/deleted), additions, deletions, and full patch diff
+- **Review comments** — inline code review comments with file path, line number, author, and body
+- **Issue comments** — general PR discussion comments
+- **Reviews** — review decisions (approved, changes requested, etc.) with author and body
 
-Repository-level summary:
-- Pull request statistics and merge rate
-- Contributors ranked by PR count
-- Areas of work by top-level directory
-- Languages touched
-- Timeline and index of all PRs
+An `extraction_meta.json` file is also written per repo with the extraction timestamp and rate limit status.
+
+### Step 2 Output: Markdown Summaries
+
+#### Per-Pull-Request Summary (`pr_{number}_summary.md`)
+
+Each summary is a self-contained markdown document designed to be pasted directly into an AI chat:
+
+```markdown
+# Pull Request #1: Add CSV-based pull request extraction with rate limiting
+
+- **Author:** fiftiesHousewife
+- **Status:** Open
+- **Created:** 2026-03-06T10:20:00Z
+- **Updated:** 2026-03-06T10:26:59Z
+- **Branch:** `feature/csv-pull-request-extraction` -> `main`
+
+## Intent
+
+- New --csv option accepts a file of GitHub PR URLs (one per line or first CSV column)
+- Groups PRs by repository so repo-level extraction meta is written once per repo
+...
+
+### Commit Messages
+
+- `bb64d2d` Add CSV-based pull request extraction with rate limiting (Pippa Newbold)
+- `cfba89b` Fix CLAUDE.md violations: final fields, abbreviation, accessor methods (Pippa Newbold)
+- `636b09f` Add PAT creation instructions to README (Pippa Newbold)
+
+## Scope of Changes
+
+- **Files changed:** 12
+- **Lines added:** 558
+- **Lines removed:** 57
+- **Languages:** Java (10), Markdown (1), .kts (1)
+
+### Files
+
+- `PullRequestSummariser/README.md` — modified (+47/-4)
+- `PullRequestSummariser/src/main/java/org/fifties/housewife/CsvPullRequestExtract.java` — added (+112/-0)
+...
+
+## Key Diffs
+
+### `PullRequestSummariser/src/main/java/org/fifties/housewife/CsvPullRequestExtract.java`
+```diff
++package org.fifties.housewife;
++import com.google.gson.GsonBuilder;
+...
+```
+
+## Discussion
+
+### Review Decisions
+- **reviewer**: Approved — Ship it (2024-01-14T00:00:00Z)
+
+### Code Review Comments
+**reviewer** on `src/App.java` line 42 (2024-01-14T00:00:00Z):
+> Consider extracting this into a helper method.
+
+### General Comments
+**contributor** (2024-01-14T00:00:00Z):
+> This looks good to me.
+
+## Verdict
+
+**Still open**
+```
+
+Sections are omitted when empty (e.g. no Discussion section if there are no reviews or comments). Diffs are truncated at `--max-diff-lines` (default 500) with a note indicating how many lines were omitted.
+
+#### Repository Summary (`repo_summary.md`)
+
+An aggregate view across all extracted pull requests:
+
+```markdown
+# Repository Summary: fiftiesHousewife/PullRequestSummariser
+
+- **Extraction date:** 2026-03-06T10:30:47.402210Z
+- **Total pull requests extracted:** 1
+
+## Pull Request Statistics
+
+- **Merged:** 0
+- **Closed (not merged):** 0
+- **Open:** 1
+
+## Contributors
+
+- **fiftiesHousewife**: 1 pull requests
+
+## Areas of Work (by top-level directory)
+
+- `PullRequestSummariser/`: 12 file changes
+
+## Languages
+
+- **Java**: 10 files changed
+- **Markdown**: 1 files changed
+- **.kts**: 1 files changed
+
+## Pull Request Timeline
+
+- **2026-03-06** Pull Request #1: Add CSV-based pull request extraction... [Open]
+
+## Pull Request Index
+
+| # | Title | Author | Status | Created |
+|---|-------|--------|--------|--------|
+| #1 | Add CSV-based pull request extraction... | fiftiesHousewife | Open | 2026-03-06 |
+```
 
 ## Project Structure
 
