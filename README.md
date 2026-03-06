@@ -120,25 +120,25 @@ Optional flags (for `--repo` and `--user` modes):
 
 The tool respects GitHub API rate limits. When the remaining quota drops below 10 requests, it automatically pauses until the rate limit resets. A GitHub Personal Access Token (`GITHUB_TOKEN`) is required for all extraction modes.
 
-Output is written to `output/{owner}_{repo}/` as one JSON file per pull request plus an `extraction_meta.json` file.
+Output is written to `output/{owner}/{repo}/` as one JSON file per pull request plus an `extraction_meta.json` file.
 
 ### Step 2: Generate Summaries (offline)
 
 ```bash
-./gradlew :PullRequestSummariser:run --args="summarize --input output/owner_repo/"
+./gradlew :PullRequestSummariser:run --args="summarize --input output/owner/repo/"
 ```
 
 Optional flags:
 
 - `--max-diff-lines N` — truncate diffs after N lines (default: `500`)
 
-Output is written to `summaries/{owner}_{repo}/` as one markdown file per pull request plus a `repo_summary.md` file.
+Summaries are written alongside the extracted JSON in `output/{owner}/{repo}/` as one markdown file per pull request plus a `repo_summary.md` file.
 
 ## Output Format
 
 ### Step 1 Output: JSON (one file per pull request)
 
-Each pull request is saved as `output/{owner}_{repo}/pr_{number}.json` containing:
+Each pull request is saved as `output/{owner}/{repo}/pr_{number}.json` containing:
 
 - **Metadata** — title, number, state, author, created/updated/merged/closed dates, labels, milestone
 - **Body** — the full pull request description

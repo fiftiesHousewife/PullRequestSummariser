@@ -84,7 +84,7 @@ class SelfTest {
         );
 
         final JsonObject mapped = extractFromApi();
-        final Path outputDirectory = tempDirectory.resolve("output").resolve(OWNER + "_" + REPO);
+        final Path outputDirectory = tempDirectory.resolve("output").resolve(OWNER).resolve(REPO);
         Files.createDirectories(outputDirectory);
         Files.writeString(outputDirectory.resolve("pr_" + PULL_REQUEST_NUMBER + ".json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(mapped));

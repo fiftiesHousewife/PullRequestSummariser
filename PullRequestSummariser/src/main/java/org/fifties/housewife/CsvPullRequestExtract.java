@@ -53,7 +53,7 @@ final class CsvPullRequestExtract {
     private int extractRepoGroup(final String fullName, final List<PullRequestUrl> urls)
             throws IOException, InterruptedException {
         final PullRequestUrl first = urls.get(0);
-        final Path outputDirectory = OUTPUT_DIR.resolve(first.owner() + "_" + first.repo());
+        final Path outputDirectory = OUTPUT_DIR.resolve(first.owner()).resolve(first.repo());
         Files.createDirectories(outputDirectory);
 
         LOG.info("Extracting " + urls.size() + " pull requests from " + fullName);

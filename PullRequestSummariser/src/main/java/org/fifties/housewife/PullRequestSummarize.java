@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 public final class PullRequestSummarize {
 
     private static final Logger LOG = Logger.getLogger(PullRequestSummarize.class.getName());
-    private static final Path SUMMARIES_DIR = Paths.get("summaries");
 
     public static void main(final String[] args) throws Exception {
         final List<String> inputDirectories = new ArrayList<>();
@@ -62,10 +61,6 @@ public final class PullRequestSummarize {
             return;
         }
 
-        final String directoryName = inputPath.getFileName().toString();
-        final Path outputDirectory = SUMMARIES_DIR.resolve(directoryName);
-        Files.createDirectories(outputDirectory);
-
         final List<JsonObject> pullRequests = loadPullRequests(inputPath);
         final JsonObject meta = loadMeta(inputPath);
 
@@ -74,18 +69,18 @@ public final class PullRequestSummarize {
             return;
         }
 
-        LOG.info("Summarizing " + directoryName + " (" + pullRequests.size() + " pull requests)");
+        LOG.info("Summarizing " + inputPath + " (" + pullRequests.size() + " pull requests)");
 
         for (final JsonObject pr : pullRequests) {
             final String summary = pullRequestWriter.write(pr);
             final int number = JsonFields.num(pr, "number");
-            Files.writeString(outputDirectory.resolve("pr_" + number + "_summary.md"), summary);
+            Files.writeString(inputPath.resolve("pr_" + number + "_summary.md"), summary);
         }
 
         final String repoSummary = repoWriter.write(pullRequests, meta);
-        Files.writeString(outputDirectory.resolve("repo_summary.md"), repoSummary);
+        Files.writeString(inputPath.resolve("repo_summary.md"), repoSummary);
 
-        LOG.info("Summaries written to " + outputDirectory + "/");
+        LOG.info("Summaries written to " + inputPath + "/");
     }
 
     static List<JsonObject> loadPullRequests(final Path inputDirectory) throws IOException {
@@ -111,6 +106,6 @@ public final class PullRequestSummarize {
     }
 
     private static void printUsage() {
-        LOG.info("Usage:\n  PullRequestSummarize --input output/owner_repo/ [--max-diff-lines 500]");
+        LOG.info("Usage:\n  PullRequestSummarize --input output/owner/repo/ [--max-diff-lines 500]");
     }
 }

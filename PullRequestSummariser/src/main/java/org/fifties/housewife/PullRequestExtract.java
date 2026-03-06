@@ -31,7 +31,7 @@ public final class PullRequestExtract {
         final String[] parts = fullName.split("/");
         final String owner = parts[0];
         final String repo = parts[1];
-        final Path outputDirectory = OUTPUT_DIR.resolve(owner + "_" + repo);
+        final Path outputDirectory = OUTPUT_DIR.resolve(owner).resolve(repo);
         Files.createDirectories(outputDirectory);
 
         LOG.info("Extracting pull requests from " + fullName + " (state=" + state + ")");
