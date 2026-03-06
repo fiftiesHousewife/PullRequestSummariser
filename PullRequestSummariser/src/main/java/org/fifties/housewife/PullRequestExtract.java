@@ -60,7 +60,7 @@ public final class PullRequestExtract {
             LOG.info("[" + (i + 1) + "/" + pullRequests.size() + "] Pull request #" + number + ": " + title);
 
             try {
-                final JsonObject data = extractSinglePr(owner, repo, number);
+                final JsonObject data = extractSinglePullRequest(owner, repo, number);
                 final String json = new GsonBuilder().setPrettyPrinting().create().toJson(data);
                 Files.writeString(outputDirectory.resolve("pr_" + number + ".json"), json);
                 extracted++;
@@ -73,7 +73,7 @@ public final class PullRequestExtract {
         return extracted;
     }
 
-    private JsonObject extractSinglePr(final String owner, final String repo, final int number)
+    private JsonObject extractSinglePullRequest(final String owner, final String repo, final int number)
             throws IOException, InterruptedException {
         final JsonObject detail = client.fetchPullRequestDetail(owner, repo, number);
         final JsonArray commits = client.fetchPullRequestCommits(owner, repo, number);
@@ -109,37 +109,19 @@ public final class PullRequestExtract {
     }
 
     public static void main(final String[] args) throws Exception {
-        String repo = null;
-        String user = null;
-        String state = "all";
-        int limit = 0;
+        final ExtractArguments arguments = ExtractArguments.parse(args);
+        final GitHubClient client = new GitHubClient(requireToken());
 
-        for (int i = 0; i < args.length; i++) {
-            switch (args[i]) {
-                case "--repo":
-                    repo = args[++i];
-                    break;
-                case "--user":
-                    user = args[++i];
-                    break;
-                case "--state":
-                    state = args[++i];
-                    break;
-                case "--limit":
-                    limit = Integer.parseInt(args[++i]);
-                    break;
-                default:
-                    LOG.severe("Unknown argument: " + args[i]);
-                    printUsage();
-                    System.exit(1);
-            }
+        if (arguments.csvFile() != null) {
+            new CsvPullRequestExtract(client).extractFromCsv(Paths.get(arguments.csvFile()));
+        } else if (arguments.user() != null) {
+            extractAllReposForUser(client, arguments);
+        } else {
+            new PullRequestExtract(client).extractRepo(arguments.repo(), arguments.state(), arguments.limit());
         }
+    }
 
-        if (repo == null && user == null) {
-            printUsage();
-            System.exit(1);
-        }
-
+    private static String requireToken() {
         final String token = System.getenv("GITHUB_TOKEN");
         if (token == null || token.isEmpty()) {
             LOG.severe("GITHUB_TOKEN environment variable is required.\n"
@@ -147,30 +129,22 @@ public final class PullRequestExtract {
                     + "Then: export GITHUB_TOKEN=ghp_your_token_here");
             System.exit(1);
         }
-
-        final GitHubClient client = new GitHubClient(token);
-        final PullRequestExtract extractor = new PullRequestExtract(client);
-
-        if (user != null) {
-            final List<String> repos = client.fetchUserRepos(user);
-            if (repos.isEmpty()) {
-                LOG.info("No repos found for user '" + user + "'");
-                System.exit(1);
-            }
-            LOG.info("Found " + repos.size() + " repos for " + user);
-            int total = 0;
-            for (final String repoName : repos) {
-                total += extractor.extractRepo(repoName, state, limit);
-            }
-            LOG.info("Total pull requests extracted: " + total);
-        } else {
-            extractor.extractRepo(repo, state, limit);
-        }
+        return token;
     }
 
-    private static void printUsage() {
-        LOG.info("Usage:\n"
-                + "  PullRequestExtract --repo owner/repo [--state all|open|closed] [--limit N]\n"
-                + "  PullRequestExtract --user username [--state all|open|closed] [--limit N]");
+    private static void extractAllReposForUser(final GitHubClient client, final ExtractArguments arguments)
+            throws IOException, InterruptedException {
+        final List<String> repos = client.fetchUserRepos(arguments.user());
+        if (repos.isEmpty()) {
+            LOG.info("No repos found for user '" + arguments.user() + "'");
+            System.exit(1);
+        }
+        LOG.info("Found " + repos.size() + " repos for " + arguments.user());
+        final PullRequestExtract extractor = new PullRequestExtract(client);
+        int total = 0;
+        for (final String repoName : repos) {
+            total += extractor.extractRepo(repoName, arguments.state(), arguments.limit());
+        }
+        LOG.info("Total pull requests extracted: " + total);
     }
 }

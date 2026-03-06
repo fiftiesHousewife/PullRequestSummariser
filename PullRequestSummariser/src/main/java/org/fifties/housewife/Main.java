@@ -37,6 +37,7 @@ public final class Main {
         LOG.info("Usage:\n"
                 + "  extract   --user <username>\n"
                 + "  extract   --repo <owner/repo> [--state all|open|closed] [--limit N]\n"
+                + "  extract   --csv <file.csv>\n"
                 + "  summarize --input <dirs...> [--max-diff-lines N]");
     }
 }
