@@ -1,18 +1,20 @@
 # PullRequestSummariser
 
-A two-step pipeline for extracting GitHub pull request data and generating AI-ready markdown summaries. Designed for air-gapped corporate environments where AI tools cannot access the internet directly.
+A three-step pipeline for extracting GitHub pull request data, generating markdown summaries, and feeding them to an AI for analysis. Designed for air-gapped corporate environments where AI tools cannot access the internet directly.
 
 ## Architecture
 
 ```
-Step 1 (online)              Step 2 (offline/corporate)
+Step 1 (online)              Step 2 (air-gapped)            Step 3 (air-gapped)
 
-┌────────────────────┐       ┌────────────────────┐
-│  extract           │       │  summarize         │
-│  (GitHub REST API) │ ────> │  (local processing)│
-│                    │ JSON  │                    │
-└────────────────────┘       └────────────────────┘
+┌────────────────────┐       ┌────────────────────┐       ┌────────────────────┐
+│  extract           │       │  summarize         │       │  AI analysis       │
+│  (GitHub REST API) │ ────> │  (local processing)│ ────> │  (local LLM or     │
+│                    │ JSON  │                    │  MD   │   corporate AI)    │
+└────────────────────┘       └────────────────────┘       └────────────────────┘
 ```
+
+Steps 1 and 2 are provided by this tool. Step 3 is performed by pasting the generated markdown summaries into your local AI of choice.
 
 ## Prerequisites
 
