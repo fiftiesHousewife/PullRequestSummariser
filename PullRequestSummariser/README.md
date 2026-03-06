@@ -1,15 +1,17 @@
-# PullRequestSummary
+# PullRequestSummariser
 
 A two-step pipeline for extracting GitHub pull request data and generating AI-ready markdown summaries. Designed for air-gapped corporate environments where AI tools cannot access the internet directly.
 
 ## Architecture
 
 ```
-Step 1 (online)                    Step 2 (offline/corporate)
-┌──────────────────────┐  JSON    ┌──────────────────────┐
-│  extract             │ ──────>  │  summarize           │
-│  (GitHub REST API)   │  files   │  (local processing)  │
-└──────────────────────┘          └──────────────────────┘
+Step 1 (online)              Step 2 (offline/corporate)
+
+┌────────────────────┐       ┌────────────────────┐
+│  extract           │       │  summarize         │
+│  (GitHub REST API) │ ────> │  (local processing)│
+│                    │ JSON  │                    │
+└────────────────────┘       └────────────────────┘
 ```
 
 ## Prerequisites
@@ -22,19 +24,19 @@ Step 1 (online)                    Step 2 (offline/corporate)
 From the repository root:
 
 ```bash
-./gradlew :PullRequestSummary:build
+./gradlew :PullRequestSummariser:build
 ```
 
 Run tests:
 
 ```bash
-./gradlew :PullRequestSummary:test
+./gradlew :PullRequestSummariser:test
 ```
 
 Check for dependency updates:
 
 ```bash
-./gradlew :PullRequestSummary:dependencyUpdates
+./gradlew :PullRequestSummariser:dependencyUpdates
 ```
 
 ## Usage
@@ -50,13 +52,13 @@ export GITHUB_TOKEN=ghp_your_token_here
 Extract from a specific repository:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="extract --repo owner/repo"
+./gradlew :PullRequestSummariser:run --args="extract --repo owner/repo"
 ```
 
 Extract from all repositories for a user:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="extract --user username"
+./gradlew :PullRequestSummariser:run --args="extract --user username"
 ```
 
 Optional flags:
@@ -69,7 +71,7 @@ Output is written to `output/{owner}_{repo}/` as one JSON file per pull request 
 ### Step 2: Generate Summaries (offline)
 
 ```bash
-./gradlew :PullRequestSummary:run --args="summarize --input output/owner_repo/"
+./gradlew :PullRequestSummariser:run --args="summarize --input output/owner_repo/"
 ```
 
 Optional flags:
@@ -109,7 +111,7 @@ Repository-level summary:
 ## Project Structure
 
 ```
-PullRequestSummary/
+PullRequestSummariser/
 ├── build.gradle.kts
 └── src/
     ├── main/java/org/fifties/housewife/
