@@ -1,137 +1,279 @@
-# Pull Request Summary Tool
+# PullRequestSummariser
 
-A two-step pipeline for extracting GitHub pull request data and generating AI-ready markdown summaries. Designed for air-gapped corporate environments where AI tools don't have internet access.
+A three-step pipeline for extracting GitHub pull request data, generating markdown summaries, and feeding them to an AI for analysis. Designed for air-gapped corporate environments where AI tools cannot access the internet directly.
+
+## Architecture
 
 ```
-Step 1 (online)                         Step 2 (offline)
-┌──────────────────────┐  JSON files   ┌──────────────────────────────┐
-│  PullRequestExtract   │ ──────────>  │  PullRequestSummarize        │
-│  (GitHub API)         │              │  (local processing)          │
-└──────────────────────┘              └──────────────────────────────┘
+Step 1 (online)              Step 2 (air-gapped)            Step 3 (air-gapped)
+
+┌────────────────────┐       ┌────────────────────┐       ┌────────────────────┐
+│  extract           │       │  summarize         │       │  AI analysis       │
+│  (GitHub REST API) │ ────> │  (local processing)│ ────> │  (local LLM or     │
+│                    │ JSON  │                    │  MD   │   corporate AI)    │
+└────────────────────┘       └────────────────────┘       └────────────────────┘
 ```
 
-**Step 1** runs on an internet-connected machine to pull data from GitHub's REST API and save it as JSON files. **Step 2** runs offline to parse the JSON and produce self-contained markdown summaries you can paste directly into an AI chat.
+Steps 1 and 2 are provided by this tool. Step 3 is performed by pasting the generated markdown summaries into your local AI of choice.
 
 ## Prerequisites
 
 - Java 21+
-- A [GitHub Personal Access Token](https://github.com/settings/tokens) (for extraction)
+- A GitHub Personal Access Token (PAT) for extraction
 
-## Build
+### Creating a GitHub Personal Access Token
 
-```bash
-./gradlew build
-```
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Choose **Fine-grained tokens** (recommended) or **Tokens (classic)**
+3. Click **Generate new token**
+4. For fine-grained tokens:
+   - Set a token name and expiration
+   - Under **Repository access**, select the repos you want to extract from (or all)
+   - Under **Permissions → Repository permissions**, grant **Pull requests: Read-only**
+5. For classic tokens:
+   - Select the **`repo`** scope (grants read access to pull requests, commits, files, and comments)
+6. Click **Generate token** and copy it immediately — it won't be shown again
 
-## Usage
-
-### Step 1: Extract pull request data
-
-Set your GitHub token and run the extractor:
+Set the token in your terminal before running extraction:
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-Extract from all repos for a user:
+## Build
+
+From the repository root:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="extract --user fiftieshousewife"
+./gradlew :PullRequestSummariser:build
 ```
 
-Extract from a specific repo:
+Run tests:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="extract --repo fiftieshousewife/my-repo"
+./gradlew :PullRequestSummariser:test
 ```
 
-Options:
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--user <name>` | | Extract from all repos owned by this user |
-| `--repo <owner/repo>` | | Extract from a specific repo |
-| `--state <all\|open\|closed>` | `all` | Filter pull requests by state |
-| `--limit <n>` | unlimited | Max pull requests to extract per repo |
-
-Output is written to `output/{owner}_{repo}/`:
-
-```
-output/
-  fiftieshousewife_my-repo/
-    pr_1.json
-    pr_2.json
-    extraction_meta.json
-```
-
-### Step 2: Generate summaries
-
-This step is fully offline — copy the `output/` directory to your air-gapped environment and run:
+Check for dependency updates:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="summarize --input output/fiftieshousewife_my-repo/"
+./gradlew :PullRequestSummariser:dependencyUpdates
 ```
 
-Summarize multiple repos at once:
+## Usage
+
+### Step 1: Extract Pull Request Data (online)
+
+Set your GitHub token:
 
 ```bash
-./gradlew :PullRequestSummary:run --args="summarize --input output/fiftieshousewife_repo1/ output/fiftieshousewife_repo2/"
+export GITHUB_TOKEN=ghp_your_token_here
 ```
 
-Options:
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--input <dirs...>` | required | One or more directories containing extracted JSON |
-| `--max-diff-lines <n>` | `500` | Truncate diffs beyond this many lines |
-
-Output is written to `summaries/{owner}_{repo}/`:
-
-```
-summaries/
-  fiftieshousewife_my-repo/
-    pr_1_summary.md        # per-pull-request summary
-    pr_2_summary.md
-    repo_summary.md        # aggregate repo summary
-```
-
-## What gets extracted
-
-For each pull request, the extractor pulls:
-
-- **Metadata** — title, number, state, author, dates, labels, milestone
-- **Description** — the pull request body
-- **Commits** — messages, authors, timestamps
-- **File changes** — filenames, additions, deletions, full diffs
-- **Review comments** — inline code review feedback
-- **Issue comments** — general discussion
-- **Reviews** — approval/rejection decisions
-
-## What the summaries contain
-
-Each per-pull-request summary is a self-contained markdown document with:
-
-- **Overview** — title, author, dates, status, branch info
-- **Intent** — description and commit messages
-- **Scope of changes** — files modified, lines changed, languages
-- **Key diffs** — actual code changes (truncated if large)
-- **Discussion** — review decisions, code comments, general discussion
-- **Verdict** — final status (merged, closed, or still open)
-
-The repo-level summary aggregates:
-
-- Pull request statistics and merge rate
-- Active contributors
-- Areas of work by directory
-- Languages touched
-- Timeline of all pull requests
-
-## Rate Limits
-
-The extractor uses authenticated GitHub API requests (5,000 requests/hour). Remaining rate limit is logged after each repo extraction and saved in `extraction_meta.json`.
-
-## Tests
+Extract from a specific repository:
 
 ```bash
-./gradlew :PullRequestSummary:test
+./gradlew :PullRequestSummariser:run --args="extract --repo owner/repo"
 ```
+
+Extract from all repositories for a user:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --user username"
+```
+
+Extract from a CSV file of pull request URLs:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --csv prs.csv"
+```
+
+The CSV file should contain one GitHub pull request URL per line (or as the first column):
+
+```
+https://github.com/owner/repo-a/pull/1
+https://github.com/owner/repo-a/pull/5
+https://github.com/other/repo-b/pull/12
+```
+
+Pull requests are grouped by repository so that repo-level analysis is performed once per repo. Lines starting with `#` are treated as comments.
+
+Optional flags (for `--repo` and `--user` modes):
+
+- `--state all|open|closed` — filter by PR state (default: `all`)
+- `--limit N` — limit the number of PRs extracted
+
+### Rate Limiting
+
+The tool respects GitHub API rate limits. When the remaining quota drops below 10 requests, it automatically pauses until the rate limit resets. A GitHub Personal Access Token (`GITHUB_TOKEN`) is required for all extraction modes.
+
+Output is written to `output/{owner}_{repo}/` as one JSON file per pull request plus an `extraction_meta.json` file.
+
+### Step 2: Generate Summaries (offline)
+
+```bash
+./gradlew :PullRequestSummariser:run --args="summarize --input output/owner_repo/"
+```
+
+Optional flags:
+
+- `--max-diff-lines N` — truncate diffs after N lines (default: `500`)
+
+Output is written to `summaries/{owner}_{repo}/` as one markdown file per pull request plus a `repo_summary.md` file.
+
+## Output Format
+
+### Step 1 Output: JSON (one file per pull request)
+
+Each pull request is saved as `output/{owner}_{repo}/pr_{number}.json` containing:
+
+- **Metadata** — title, number, state, author, created/updated/merged/closed dates, labels, milestone
+- **Body** — the full pull request description
+- **Commits** — SHA, message, author, and date for each commit
+- **Files** — filename, status (added/modified/deleted), additions, deletions, and full patch diff
+- **Review comments** — inline code review comments with file path, line number, author, and body
+- **Issue comments** — general PR discussion comments
+- **Reviews** — review decisions (approved, changes requested, etc.) with author and body
+
+An `extraction_meta.json` file is also written per repo with the extraction timestamp and rate limit status.
+
+### Step 2 Output: Markdown Summaries
+
+#### Per-Pull-Request Summary (`pr_{number}_summary.md`)
+
+Each summary is a self-contained markdown document designed to be pasted directly into an AI chat:
+
+```markdown
+# Pull Request #1: Add CSV-based pull request extraction with rate limiting
+
+- **Author:** fiftiesHousewife
+- **Status:** Open
+- **Created:** 2026-03-06T10:20:00Z
+- **Updated:** 2026-03-06T10:26:59Z
+- **Branch:** `feature/csv-pull-request-extraction` -> `main`
+
+## Intent
+
+- New --csv option accepts a file of GitHub PR URLs (one per line or first CSV column)
+- Groups PRs by repository so repo-level extraction meta is written once per repo
+...
+
+### Commit Messages
+
+- `bb64d2d` Add CSV-based pull request extraction with rate limiting (Pippa Newbold)
+- `cfba89b` Fix CLAUDE.md violations: final fields, abbreviation, accessor methods (Pippa Newbold)
+- `636b09f` Add PAT creation instructions to README (Pippa Newbold)
+
+## Scope of Changes
+
+- **Files changed:** 12
+- **Lines added:** 558
+- **Lines removed:** 57
+- **Languages:** Java (10), Markdown (1), .kts (1)
+
+### Files
+
+- `PullRequestSummariser/README.md` — modified (+47/-4)
+- `PullRequestSummariser/src/main/java/org/fifties/housewife/CsvPullRequestExtract.java` — added (+112/-0)
+...
+
+## Key Diffs
+
+### `PullRequestSummariser/src/main/java/org/fifties/housewife/CsvPullRequestExtract.java`
+```diff
++package org.fifties.housewife;
++import com.google.gson.GsonBuilder;
+...
+```
+
+## Discussion
+
+### Review Decisions
+- **reviewer**: Approved — Ship it (2024-01-14T00:00:00Z)
+
+### Code Review Comments
+**reviewer** on `src/App.java` line 42 (2024-01-14T00:00:00Z):
+> Consider extracting this into a helper method.
+
+### General Comments
+**contributor** (2024-01-14T00:00:00Z):
+> This looks good to me.
+
+## Verdict
+
+**Still open**
+```
+
+Sections are omitted when empty (e.g. no Discussion section if there are no reviews or comments). Diffs are truncated at `--max-diff-lines` (default 500) with a note indicating how many lines were omitted.
+
+#### Repository Summary (`repo_summary.md`)
+
+An aggregate view across all extracted pull requests:
+
+```markdown
+# Repository Summary: fiftiesHousewife/PullRequestSummariser
+
+- **Extraction date:** 2026-03-06T10:30:47.402210Z
+- **Total pull requests extracted:** 1
+
+## Pull Request Statistics
+
+- **Merged:** 0
+- **Closed (not merged):** 0
+- **Open:** 1
+
+## Contributors
+
+- **fiftiesHousewife**: 1 pull requests
+
+## Areas of Work (by top-level directory)
+
+- `PullRequestSummariser/`: 12 file changes
+
+## Languages
+
+- **Java**: 10 files changed
+- **Markdown**: 1 files changed
+- **.kts**: 1 files changed
+
+## Pull Request Timeline
+
+- **2026-03-06** Pull Request #1: Add CSV-based pull request extraction... [Open]
+
+## Pull Request Index
+
+| # | Title | Author | Status | Created |
+|---|-------|--------|--------|--------|
+| #1 | Add CSV-based pull request extraction... | fiftiesHousewife | Open | 2026-03-06 |
+```
+
+## Project Structure
+
+```
+PullRequestSummariser/
+├── build.gradle.kts
+└── src/
+    ├── main/java/org/fifties/housewife/
+    │   ├── Main.java                      — entry point (extract/summarize)
+    │   ├── PullRequestExtract.java        — repo/user extraction orchestrator
+    │   ├── CsvPullRequestExtract.java     — CSV-based extraction orchestrator
+    │   ├── CsvPullRequestReader.java      — parses CSV file of PR URLs
+    │   ├── PullRequestUrl.java            — parses GitHub PR URLs
+    │   ├── ExtractArguments.java          — CLI argument parsing for extract
+    │   ├── PullRequestSummarize.java      — offline summary orchestrator
+    │   ├── GitHubClient.java              — HTTP client with pagination and rate limiting
+    │   ├── PullRequestDataMapper.java     — maps API responses to consolidated JSON
+    │   ├── PullRequestMarkdownWriter.java — per-PR markdown generation
+    │   ├── DiscussionMarkdownWriter.java  — review/comment markdown sections
+    │   ├── RepoMarkdownWriter.java        — repo-level summary markdown
+    │   ├── JsonFields.java                — safe JSON field access utility
+    │   └── Languages.java                 — file extension to language mapping
+    └── test/java/org/fifties/housewife/
+        └── *Test.java                     — JUnit 5 + AssertJ tests
+```
+
+## Dependencies
+
+- [Gson](https://github.com/google/gson) — JSON parsing
+- Java 11+ `HttpClient` — HTTP requests (no external HTTP dependency)
+- JUnit 5 + AssertJ — testing

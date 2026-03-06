@@ -282,6 +282,8 @@ Work through this checklist before pushing or opening a pull request.
 
 ### Documentation
 
+- [ ] README is in the project root — not inside a submodule directory
+- [ ] Only one README exists — no duplicates in submodules
 - [ ] README examples are consistent with actual code — endpoints, method signatures, and library usage all match the implementation
 
 ### Security
