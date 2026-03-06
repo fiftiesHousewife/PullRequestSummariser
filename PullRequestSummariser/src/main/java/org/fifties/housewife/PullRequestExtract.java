@@ -12,11 +12,11 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.logging.Logger;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 public final class PullRequestExtract {
-
-    private static final Logger LOG = Logger.getLogger(PullRequestExtract.class.getName());
     private static final Path OUTPUT_DIR = Paths.get("output");
 
     private final GitHubClient client;
@@ -34,7 +34,7 @@ public final class PullRequestExtract {
         final Path outputDirectory = OUTPUT_DIR.resolve(owner).resolve(repo);
         Files.createDirectories(outputDirectory);
 
-        LOG.info("Extracting pull requests from " + fullName + " (state=" + state + ")");
+        log.info("Extracting pull requests from " + fullName + " (state=" + state + ")");
 
         JsonArray pullRequests = client.fetchPullRequestList(owner, repo, state);
         if (limit > 0 && pullRequests.size() > limit) {
@@ -46,18 +46,18 @@ public final class PullRequestExtract {
         }
 
         if (pullRequests.isEmpty()) {
-            LOG.info("No pull requests found for " + fullName);
+            log.info("No pull requests found for " + fullName);
             return 0;
         }
 
-        LOG.info("Found " + pullRequests.size() + " pull requests, extracting details...");
+        log.info("Found " + pullRequests.size() + " pull requests, extracting details...");
 
         int extracted = 0;
         for (int i = 0; i < pullRequests.size(); i++) {
             final JsonObject pullRequest = pullRequests.get(i).getAsJsonObject();
             final int number = pullRequest.get("number").getAsInt();
             final String title = pullRequest.get("title").getAsString();
-            LOG.info("[" + (i + 1) + "/" + pullRequests.size() + "] Pull request #" + number + ": " + title);
+            log.info("[" + (i + 1) + "/" + pullRequests.size() + "] Pull request #" + number + ": " + title);
 
             try {
                 final JsonObject data = extractSinglePullRequest(owner, repo, number);
@@ -65,7 +65,7 @@ public final class PullRequestExtract {
                 Files.writeString(outputDirectory.resolve("pr_" + number + ".json"), json);
                 extracted++;
             } catch (final IOException exception) {
-                LOG.warning("Failed to extract pull request #" + number + ": " + exception.getMessage());
+                log.warn("Failed to extract pull request #" + number + ": " + exception.getMessage());
             }
         }
 
@@ -104,7 +104,7 @@ public final class PullRequestExtract {
         final String json = new GsonBuilder().setPrettyPrinting().create().toJson(meta);
         Files.writeString(outputDirectory.resolve("extraction_meta.json"), json);
 
-        LOG.info("Done. " + extracted + " pull requests saved. Rate limit: "
+        log.info("Done. " + extracted + " pull requests saved. Rate limit: "
                 + rate.get("remaining").getAsInt() + "/" + rate.get("limit").getAsInt());
     }
 
@@ -124,7 +124,7 @@ public final class PullRequestExtract {
     private static String requireToken() {
         final String token = System.getenv("GITHUB_TOKEN");
         if (token == null || token.isEmpty()) {
-            LOG.severe("GITHUB_TOKEN environment variable is required.\n"
+            log.error("GITHUB_TOKEN environment variable is required.\n"
                     + "Create a Personal Access Token at https://github.com/settings/tokens\n"
                     + "Then: export GITHUB_TOKEN=ghp_your_token_here");
             System.exit(1);
@@ -136,15 +136,15 @@ public final class PullRequestExtract {
             throws IOException, InterruptedException {
         final List<String> repos = client.fetchUserRepos(arguments.user());
         if (repos.isEmpty()) {
-            LOG.info("No repos found for user '" + arguments.user() + "'");
+            log.info("No repos found for user '" + arguments.user() + "'");
             System.exit(1);
         }
-        LOG.info("Found " + repos.size() + " repos for " + arguments.user());
+        log.info("Found " + repos.size() + " repos for " + arguments.user());
         final PullRequestExtract extractor = new PullRequestExtract(client);
         int total = 0;
         for (final String repoName : repos) {
             total += extractor.extractRepo(repoName, arguments.state(), arguments.limit());
         }
-        LOG.info("Total pull requests extracted: " + total);
+        log.info("Total pull requests extracted: " + total);
     }
 }

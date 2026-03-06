@@ -1,10 +1,9 @@
 package org.fifties.housewife;
 
-import java.util.logging.Logger;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 final class ExtractArguments {
-
-    private static final Logger LOG = Logger.getLogger(ExtractArguments.class.getName());
 
     private final String repo;
     private final String user;
@@ -66,7 +65,7 @@ final class ExtractArguments {
                     limit = Integer.parseInt(args[++i]);
                     break;
                 default:
-                    LOG.severe("Unknown argument: " + args[i]);
+                    log.error("Unknown argument: " + args[i]);
                     printUsage();
                     System.exit(1);
             }
@@ -81,7 +80,7 @@ final class ExtractArguments {
     }
 
     private static void printUsage() {
-        LOG.info("Usage:\n"
+        log.info("Usage:\n"
                 + "  extract --repo owner/repo [--state all|open|closed] [--limit N]\n"
                 + "  extract --user username [--state all|open|closed] [--limit N]\n"
                 + "  extract --csv file.csv");

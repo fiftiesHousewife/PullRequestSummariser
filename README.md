@@ -290,5 +290,6 @@ PullRequestSummariser/
 ## Dependencies
 
 - [Gson](https://github.com/google/gson) — JSON parsing
+- [Log4j2](https://logging.apache.org/log4j/2.x/) + [Lombok](https://projectlombok.org/) — logging via `@Log4j2`
 - Java 21 `HttpClient` — HTTP requests (no external HTTP dependency)
 - JUnit 5 + AssertJ — testing

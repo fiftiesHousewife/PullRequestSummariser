@@ -5,11 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 final class CsvPullRequestReader {
-
-    private static final Logger LOG = Logger.getLogger(CsvPullRequestReader.class.getName());
 
     List<PullRequestUrl> read(final Path csvFile) throws IOException {
         final List<String> lines = Files.readAllLines(csvFile);
@@ -24,7 +24,7 @@ final class CsvPullRequestReader {
             try {
                 urls.add(PullRequestUrl.parse(cell));
             } catch (final IllegalArgumentException exception) {
-                LOG.warning("Skipping line " + lineNumber + ": " + exception.getMessage());
+                log.warn("Skipping line " + lineNumber + ": " + exception.getMessage());
             }
         }
 

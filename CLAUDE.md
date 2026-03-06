@@ -197,7 +197,24 @@ Names must be clear to a human reader. Avoid jargon terms that describe role rat
 
 ### Logging
 
-Never use `System.out.println` or `e.printStackTrace()`. Use `java.util.logging.Logger` or an appropriate logging framework.
+Never use `System.out.println` or `e.printStackTrace()`. Use Lombok's `@Log4j2` annotation with Log4j2:
+
+```java
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
+final class MyClass {
+    void doWork() {
+        log.info("Processing started");
+        log.warn("Something unexpected");
+        log.error("Something failed");
+    }
+}
+```
+
+- Lombok generates the `private static final Logger log` field — never declare it manually
+- Use `log.error` (not `severe`), `log.warn` (not `warning`), `log.info`, `log.debug`
+- Configure Log4j2 via `src/main/resources/log4j2.xml`
 
 ---
 

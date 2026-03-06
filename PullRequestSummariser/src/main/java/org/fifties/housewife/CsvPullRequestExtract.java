@@ -14,12 +14,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-final class CsvPullRequestExtract {
+import lombok.extern.log4j.Log4j2;
 
-    private static final Logger LOG = Logger.getLogger(CsvPullRequestExtract.class.getName());
+@Log4j2
+final class CsvPullRequestExtract {
     private static final Path OUTPUT_DIR = Paths.get("output");
 
     private final GitHubClient client;
@@ -32,21 +32,21 @@ final class CsvPullRequestExtract {
     int extractFromCsv(final Path csvFile) throws IOException, InterruptedException {
         final List<PullRequestUrl> urls = new CsvPullRequestReader().read(csvFile);
         if (urls.isEmpty()) {
-            LOG.info("No pull request URLs found in " + csvFile);
+            log.info("No pull request URLs found in " + csvFile);
             return 0;
         }
 
         final Map<String, List<PullRequestUrl>> byRepo = urls.stream()
                 .collect(Collectors.groupingBy(PullRequestUrl::fullName, LinkedHashMap::new, Collectors.toList()));
 
-        LOG.info("Found " + urls.size() + " pull requests across " + byRepo.size() + " repositories");
+        log.info("Found " + urls.size() + " pull requests across " + byRepo.size() + " repositories");
 
         int totalExtracted = 0;
         for (final Map.Entry<String, List<PullRequestUrl>> entry : byRepo.entrySet()) {
             totalExtracted += extractRepoGroup(entry.getKey(), entry.getValue());
         }
 
-        LOG.info("Total pull requests extracted: " + totalExtracted);
+        log.info("Total pull requests extracted: " + totalExtracted);
         return totalExtracted;
     }
 
@@ -56,12 +56,12 @@ final class CsvPullRequestExtract {
         final Path outputDirectory = OUTPUT_DIR.resolve(first.owner()).resolve(first.repo());
         Files.createDirectories(outputDirectory);
 
-        LOG.info("Extracting " + urls.size() + " pull requests from " + fullName);
+        log.info("Extracting " + urls.size() + " pull requests from " + fullName);
 
         int extracted = 0;
         for (int i = 0; i < urls.size(); i++) {
             final PullRequestUrl url = urls.get(i);
-            LOG.info("[" + (i + 1) + "/" + urls.size() + "] Pull request #" + url.number());
+            log.info("[" + (i + 1) + "/" + urls.size() + "] Pull request #" + url.number());
 
             try {
                 final JsonObject data = extractSinglePullRequest(url);
@@ -69,7 +69,7 @@ final class CsvPullRequestExtract {
                 Files.writeString(outputDirectory.resolve("pr_" + url.number() + ".json"), json);
                 extracted++;
             } catch (final IOException exception) {
-                LOG.warning("Failed to extract pull request #" + url.number() + ": " + exception.getMessage());
+                log.warn("Failed to extract pull request #" + url.number() + ": " + exception.getMessage());
             }
         }
 
@@ -106,7 +106,7 @@ final class CsvPullRequestExtract {
         final String json = new GsonBuilder().setPrettyPrinting().create().toJson(meta);
         Files.writeString(outputDirectory.resolve("extraction_meta.json"), json);
 
-        LOG.info("Done. " + extracted + " pull requests saved. Rate limit: "
+        log.info("Done. " + extracted + " pull requests saved. Rate limit: "
                 + rate.get("remaining").getAsInt() + "/" + rate.get("limit").getAsInt());
     }
 }

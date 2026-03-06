@@ -24,6 +24,10 @@ application {
 
 dependencies {
     implementation(libs.gson)
+    implementation(libs.log4j.api)
+    implementation(libs.log4j.core)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.assertj.core)

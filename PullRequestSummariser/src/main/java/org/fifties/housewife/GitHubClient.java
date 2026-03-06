@@ -13,13 +13,13 @@ import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class GitHubClient {
+import lombok.extern.log4j.Log4j2;
 
-    private static final Logger LOG = Logger.getLogger(GitHubClient.class.getName());
+@Log4j2
+final class GitHubClient {
     private static final String BASE_URL = "https://api.github.com";
     private static final Pattern LINK_NEXT = Pattern.compile("<([^>]+)>;\\s*rel=\"next\"");
     private static final int RATE_LIMIT_THRESHOLD = 10;
@@ -123,7 +123,7 @@ final class GitHubClient {
                     .map(Long::parseLong).orElse(0L);
             final long waitSeconds = resetEpoch - Instant.now().getEpochSecond() + 1;
             if (waitSeconds > 0) {
-                LOG.warning("Rate limit low (" + remaining + " remaining). Waiting " + waitSeconds + " seconds...");
+                log.warn("Rate limit low (" + remaining + " remaining). Waiting " + waitSeconds + " seconds...");
                 Thread.sleep(waitSeconds * 1000);
             }
         }

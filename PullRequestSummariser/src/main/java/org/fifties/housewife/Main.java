@@ -1,11 +1,11 @@
 package org.fifties.housewife;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.util.Arrays;
-import java.util.logging.Logger;
 
+@Log4j2
 public final class Main {
-
-    private static final Logger LOG = Logger.getLogger(Main.class.getName());
 
     private Main() {
     }
@@ -27,14 +27,14 @@ public final class Main {
                 PullRequestSummarize.main(remaining);
                 break;
             default:
-                LOG.severe("Unknown command: " + command);
+                log.error("Unknown command: " + command);
                 printUsage();
                 System.exit(1);
         }
     }
 
     private static void printUsage() {
-        LOG.info("Usage:\n"
+        log.info("Usage:\n"
                 + "  extract   --user <username>\n"
                 + "  extract   --repo <owner/repo> [--state all|open|closed] [--limit N]\n"
                 + "  extract   --csv <file.csv>\n"

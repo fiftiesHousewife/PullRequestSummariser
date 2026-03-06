@@ -11,11 +11,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
 public final class PullRequestSummarize {
-
-    private static final Logger LOG = Logger.getLogger(PullRequestSummarize.class.getName());
 
     public static void main(final String[] args) throws Exception {
         final List<String> inputDirectories = new ArrayList<>();
@@ -35,7 +35,7 @@ public final class PullRequestSummarize {
                     maxDiffLines = Integer.parseInt(args[++i]);
                     break;
                 default:
-                    LOG.severe("Unknown argument: " + args[i]);
+                    log.error("Unknown argument: " + args[i]);
                     printUsage();
                     System.exit(1);
             }
@@ -57,7 +57,7 @@ public final class PullRequestSummarize {
     static void summarizeDirectory(final Path inputPath, final PullRequestMarkdownWriter pullRequestWriter,
                                    final RepoMarkdownWriter repoWriter) throws IOException {
         if (!Files.isDirectory(inputPath)) {
-            LOG.warning("Skipping " + inputPath + " — not a directory");
+            log.warn("Skipping " + inputPath + " — not a directory");
             return;
         }
 
@@ -65,11 +65,11 @@ public final class PullRequestSummarize {
         final JsonObject meta = loadMeta(inputPath);
 
         if (pullRequests.isEmpty()) {
-            LOG.info("No pull requests found in " + inputPath);
+            log.info("No pull requests found in " + inputPath);
             return;
         }
 
-        LOG.info("Summarizing " + inputPath + " (" + pullRequests.size() + " pull requests)");
+        log.info("Summarizing " + inputPath + " (" + pullRequests.size() + " pull requests)");
 
         for (final JsonObject pr : pullRequests) {
             final String summary = pullRequestWriter.write(pr);
@@ -80,7 +80,7 @@ public final class PullRequestSummarize {
         final String repoSummary = repoWriter.write(pullRequests, meta);
         Files.writeString(inputPath.resolve("repo_summary.md"), repoSummary);
 
-        LOG.info("Summaries written to " + inputPath + "/");
+        log.info("Summaries written to " + inputPath + "/");
     }
 
     static List<JsonObject> loadPullRequests(final Path inputDirectory) throws IOException {
@@ -106,6 +106,6 @@ public final class PullRequestSummarize {
     }
 
     private static void printUsage() {
-        LOG.info("Usage:\n  PullRequestSummarize --input output/owner/repo/ [--max-diff-lines 500]");
+        log.info("Usage:\n  PullRequestSummarize --input output/owner/repo/ [--max-diff-lines 500]");
     }
 }
