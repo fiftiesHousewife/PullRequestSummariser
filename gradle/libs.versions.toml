@@ -1,0 +1,14 @@
+[versions]
+gson = "2.13.2"
+junit-jupiter = "5.11.4"
+assertj = "3.27.3"
+versions = "0.53.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+[plugins]
+versions = { id = "com.github.ben-manes.versions", version.ref = "versions" }
