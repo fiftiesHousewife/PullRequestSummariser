@@ -57,7 +57,44 @@ testImplementation(libs.junit.jupiter)        // aggregates api, params, engine
 testRuntimeOnly(libs.junit.platform.launcher)
 ```
 
-### 4. Add Ben-Manes Versions Plugin
+### 4. Add JaCoCo for Test Coverage
+
+Include the JaCoCo plugin in every submodule and enforce a minimum coverage threshold:
+
+```kotlin
+plugins {
+    id("jacoco")
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        html.required.set(true)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
+```
+
+Usage:
+```bash
+./gradlew :ModuleName:jacocoTestReport        # generate HTML report
+./gradlew :ModuleName:check                    # build + verify 80% coverage
+```
+
+### 5. Add Ben-Manes Versions Plugin
 
 Essential for keeping dependencies up to date:
 
