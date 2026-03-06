@@ -19,7 +19,26 @@ Steps 1 and 2 are provided by this tool. Step 3 is performed by pasting the gene
 ## Prerequisites
 
 - Java 21+
-- A GitHub Personal Access Token (for extraction only)
+- A GitHub Personal Access Token (PAT) for extraction
+
+### Creating a GitHub Personal Access Token
+
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Choose **Fine-grained tokens** (recommended) or **Tokens (classic)**
+3. Click **Generate new token**
+4. For fine-grained tokens:
+   - Set a token name and expiration
+   - Under **Repository access**, select the repos you want to extract from (or all)
+   - Under **Permissions → Repository permissions**, grant **Pull requests: Read-only**
+5. For classic tokens:
+   - Select the **`repo`** scope (grants read access to pull requests, commits, files, and comments)
+6. Click **Generate token** and copy it immediately — it won't be shown again
+
+Set the token in your terminal before running extraction:
+
+```bash
+export GITHUB_TOKEN=ghp_your_token_here
+```
 
 ## Build
 
