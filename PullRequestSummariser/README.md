@@ -63,10 +63,30 @@ Extract from all repositories for a user:
 ./gradlew :PullRequestSummariser:run --args="extract --user username"
 ```
 
-Optional flags:
+Extract from a CSV file of pull request URLs:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --csv prs.csv"
+```
+
+The CSV file should contain one GitHub pull request URL per line (or as the first column):
+
+```
+https://github.com/owner/repo-a/pull/1
+https://github.com/owner/repo-a/pull/5
+https://github.com/other/repo-b/pull/12
+```
+
+Pull requests are grouped by repository so that repo-level analysis is performed once per repo. Lines starting with `#` are treated as comments.
+
+Optional flags (for `--repo` and `--user` modes):
 
 - `--state all|open|closed` — filter by PR state (default: `all`)
 - `--limit N` — limit the number of PRs extracted
+
+### Rate Limiting
+
+The tool respects GitHub API rate limits. When the remaining quota drops below 10 requests, it automatically pauses until the rate limit resets. A GitHub Personal Access Token (`GITHUB_TOKEN`) is required for all extraction modes.
 
 Output is written to `output/{owner}_{repo}/` as one JSON file per pull request plus an `extraction_meta.json` file.
 
@@ -118,9 +138,13 @@ PullRequestSummariser/
 └── src/
     ├── main/java/org/fifties/housewife/
     │   ├── Main.java                      — entry point (extract/summarize)
-    │   ├── PullRequestExtract.java        — GitHub API extraction orchestrator
+    │   ├── PullRequestExtract.java        — repo/user extraction orchestrator
+    │   ├── CsvPullRequestExtract.java     — CSV-based extraction orchestrator
+    │   ├── CsvPullRequestReader.java      — parses CSV file of PR URLs
+    │   ├── PullRequestUrl.java            — parses GitHub PR URLs
+    │   ├── ExtractArguments.java          — CLI argument parsing for extract
     │   ├── PullRequestSummarize.java      — offline summary orchestrator
-    │   ├── GitHubClient.java              — HTTP client with pagination
+    │   ├── GitHubClient.java              — HTTP client with pagination and rate limiting
     │   ├── PullRequestDataMapper.java     — maps API responses to consolidated JSON
     │   ├── PullRequestMarkdownWriter.java — per-PR markdown generation
     │   ├── DiscussionMarkdownWriter.java  — review/comment markdown sections

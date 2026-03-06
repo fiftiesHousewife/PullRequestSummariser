@@ -10,15 +10,19 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class GitHubClient {
 
+    private static final Logger LOG = Logger.getLogger(GitHubClient.class.getName());
     private static final String BASE_URL = "https://api.github.com";
     private static final Pattern LINK_NEXT = Pattern.compile("<([^>]+)>;\\s*rel=\"next\"");
+    private static final int RATE_LIMIT_THRESHOLD = 10;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final String token;
@@ -107,7 +111,22 @@ final class GitHubClient {
         if (response.statusCode() >= 400) {
             throw new IOException("HTTP " + response.statusCode() + " for " + url + ": " + response.body());
         }
+        waitIfRateLimited(response);
         return response;
+    }
+
+    private void waitIfRateLimited(final HttpResponse<String> response) throws InterruptedException {
+        final int remaining = response.headers().firstValue("X-RateLimit-Remaining")
+                .map(Integer::parseInt).orElse(Integer.MAX_VALUE);
+        if (remaining < RATE_LIMIT_THRESHOLD) {
+            final long resetEpoch = response.headers().firstValue("X-RateLimit-Reset")
+                    .map(Long::parseLong).orElse(0L);
+            final long waitSeconds = resetEpoch - Instant.now().getEpochSecond() + 1;
+            if (waitSeconds > 0) {
+                LOG.warning("Rate limit low (" + remaining + " remaining). Waiting " + waitSeconds + " seconds...");
+                Thread.sleep(waitSeconds * 1000);
+            }
+        }
     }
 
     private String extractNextLink(final HttpResponse<String> response) {
