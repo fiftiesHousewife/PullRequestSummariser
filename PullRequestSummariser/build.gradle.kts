@@ -29,7 +29,19 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
+}
+
+tasks.register<Test>("integrationTest") {
+    useJUnitPlatform {
+        includeTags("integration")
+    }
+    group = "verification"
+    description = "Runs integration tests against the live GitHub API (requires GITHUB_TOKEN)"
+    classpath = sourceSets["test"].runtimeClasspath
+    testClassesDirs = sourceSets["test"].output.classesDirs
 }
 
 tasks.jacocoTestReport {

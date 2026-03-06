@@ -60,6 +60,19 @@ Check for dependency updates:
 ./gradlew :PullRequestSummariser:dependencyUpdates
 ```
 
+### Self Test
+
+The project includes integration tests that run the full pipeline against its own PR #1 on GitHub. These tests are excluded from the normal build and CI — they only run when explicitly invoked.
+
+```bash
+export GITHUB_TOKEN=ghp_your_token_here
+./gradlew :PullRequestSummariser:integrationTest
+```
+
+This extracts live data from the GitHub API for `fiftiesHousewife/PullRequestSummariser` PR #1, verifies the extracted JSON structure, transforms it to markdown, and asserts the output contains expected sections. A second test does the same via the CSV input path, writing to a temp directory and round-tripping through `loadPullRequests`.
+
+Requires a valid `GITHUB_TOKEN` with read access to this repository.
+
 ## Usage
 
 ### Step 1: Extract Pull Request Data (online)
@@ -264,8 +277,10 @@ PullRequestSummariser/
     │   ├── GitHubClient.java              — HTTP client with pagination and rate limiting
     │   ├── PullRequestDataMapper.java     — maps API responses to consolidated JSON
     │   ├── PullRequestMarkdownWriter.java — per-PR markdown generation
+    │   ├── DiffMarkdownWriter.java        — diff section markdown
     │   ├── DiscussionMarkdownWriter.java  — review/comment markdown sections
     │   ├── RepoMarkdownWriter.java        — repo-level summary markdown
+    │   ├── TimelineMarkdownWriter.java    — timeline and index markdown
     │   ├── JsonFields.java                — safe JSON field access utility
     │   └── Languages.java                 — file extension to language mapping
     └── test/java/org/fifties/housewife/
