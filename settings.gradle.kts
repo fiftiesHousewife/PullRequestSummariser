@@ -1,3 +1,3 @@
 rootProject.name = "Github"
 
-include("PullRequestSummary")
+include("PullRequestSummariser")
