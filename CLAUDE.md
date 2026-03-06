@@ -11,6 +11,17 @@ This document captures the best practices and patterns established during develo
 - Always use submodules, even if there is only one module — no root `build.gradle.kts`
 - Root project has only `settings.gradle.kts` with `include("ModuleName")`
 - All build configuration lives in submodule `build.gradle.kts` files
+- Use Java toolchain syntax, not `sourceCompatibility`/`targetCompatibility`:
+
+```kotlin
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+```
+
+- Target Java 21 — all projects use Java 21 features and APIs (e.g. `HttpClient`, records, text blocks)
 
 ### 2. Use Version Catalogs (TOML)
 

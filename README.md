@@ -290,5 +290,5 @@ PullRequestSummariser/
 ## Dependencies
 
 - [Gson](https://github.com/google/gson) — JSON parsing
-- Java 11+ `HttpClient` — HTTP requests (no external HTTP dependency)
+- Java 21 `HttpClient` — HTTP requests (no external HTTP dependency)
 - JUnit 5 + AssertJ — testing
