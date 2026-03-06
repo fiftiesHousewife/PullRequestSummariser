@@ -73,6 +73,15 @@ This extracts live data from the GitHub API for `fiftiesHousewife/PullRequestSum
 
 Requires a valid `GITHUB_TOKEN` with read access to this repository.
 
+**Behind a corporate proxy:**
+
+```bash
+./gradlew :PullRequestSummariser:integrationTest \
+  -Dhttps.proxyHost=proxy.corp.com -Dhttps.proxyPort=8080
+```
+
+The same proxy properties work for extraction (`run` task). The tool uses Java's `ProxySelector.getDefault()` so it respects standard JVM proxy system properties (`https.proxyHost`, `https.proxyPort`, `http.nonProxyHosts`).
+
 ## Usage
 
 ### Step 1: Extract Pull Request Data (online)

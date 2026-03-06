@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "if [[ \"$CLAUDE_TOOL_INPUT\" == *.java* ]]; then ./gradlew classes 2>&1 | tail -5; fi"
+      }
+    ]
+  }
+}

@@ -47,6 +47,11 @@ tasks.register<Test>("integrationTest") {
     description = "Runs integration tests against the live GitHub API (requires GITHUB_TOKEN)"
     classpath = sourceSets["test"].runtimeClasspath
     testClassesDirs = sourceSets["test"].output.classesDirs
+    systemProperty("https.proxyHost", System.getProperty("https.proxyHost") ?: "")
+    systemProperty("https.proxyPort", System.getProperty("https.proxyPort") ?: "")
+    systemProperty("http.proxyHost", System.getProperty("http.proxyHost") ?: "")
+    systemProperty("http.proxyPort", System.getProperty("http.proxyPort") ?: "")
+    systemProperty("http.nonProxyHosts", System.getProperty("http.nonProxyHosts") ?: "")
 }
 
 tasks.jacocoTestReport {
