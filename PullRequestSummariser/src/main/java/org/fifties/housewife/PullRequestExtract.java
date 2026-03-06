@@ -60,7 +60,7 @@ public final class PullRequestExtract {
             LOG.info("[" + (i + 1) + "/" + pullRequests.size() + "] Pull request #" + number + ": " + title);
 
             try {
-                final JsonObject data = extractSinglePr(owner, repo, number);
+                final JsonObject data = extractSinglePullRequest(owner, repo, number);
                 final String json = new GsonBuilder().setPrettyPrinting().create().toJson(data);
                 Files.writeString(outputDirectory.resolve("pr_" + number + ".json"), json);
                 extracted++;
@@ -73,7 +73,7 @@ public final class PullRequestExtract {
         return extracted;
     }
 
-    private JsonObject extractSinglePr(final String owner, final String repo, final int number)
+    private JsonObject extractSinglePullRequest(final String owner, final String repo, final int number)
             throws IOException, InterruptedException {
         final JsonObject detail = client.fetchPullRequestDetail(owner, repo, number);
         final JsonArray commits = client.fetchPullRequestCommits(owner, repo, number);
@@ -112,12 +112,12 @@ public final class PullRequestExtract {
         final ExtractArguments arguments = ExtractArguments.parse(args);
         final GitHubClient client = new GitHubClient(requireToken());
 
-        if (arguments.csvFile != null) {
-            new CsvPullRequestExtract(client).extractFromCsv(Paths.get(arguments.csvFile));
-        } else if (arguments.user != null) {
+        if (arguments.csvFile() != null) {
+            new CsvPullRequestExtract(client).extractFromCsv(Paths.get(arguments.csvFile()));
+        } else if (arguments.user() != null) {
             extractAllReposForUser(client, arguments);
         } else {
-            new PullRequestExtract(client).extractRepo(arguments.repo, arguments.state, arguments.limit);
+            new PullRequestExtract(client).extractRepo(arguments.repo(), arguments.state(), arguments.limit());
         }
     }
 
@@ -134,16 +134,16 @@ public final class PullRequestExtract {
 
     private static void extractAllReposForUser(final GitHubClient client, final ExtractArguments arguments)
             throws IOException, InterruptedException {
-        final List<String> repos = client.fetchUserRepos(arguments.user);
+        final List<String> repos = client.fetchUserRepos(arguments.user());
         if (repos.isEmpty()) {
-            LOG.info("No repos found for user '" + arguments.user + "'");
+            LOG.info("No repos found for user '" + arguments.user() + "'");
             System.exit(1);
         }
-        LOG.info("Found " + repos.size() + " repos for " + arguments.user);
+        LOG.info("Found " + repos.size() + " repos for " + arguments.user());
         final PullRequestExtract extractor = new PullRequestExtract(client);
         int total = 0;
         for (final String repoName : repos) {
-            total += extractor.extractRepo(repoName, arguments.state, arguments.limit);
+            total += extractor.extractRepo(repoName, arguments.state(), arguments.limit());
         }
         LOG.info("Total pull requests extracted: " + total);
     }

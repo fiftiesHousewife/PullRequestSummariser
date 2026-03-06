@@ -6,11 +6,11 @@ final class ExtractArguments {
 
     private static final Logger LOG = Logger.getLogger(ExtractArguments.class.getName());
 
-    final String repo;
-    final String user;
-    final String csvFile;
-    final String state;
-    final int limit;
+    private final String repo;
+    private final String user;
+    private final String csvFile;
+    private final String state;
+    private final int limit;
 
     private ExtractArguments(final String repo, final String user, final String csvFile,
                              final String state, final int limit) {
@@ -19,6 +19,26 @@ final class ExtractArguments {
         this.csvFile = csvFile;
         this.state = state;
         this.limit = limit;
+    }
+
+    String repo() {
+        return repo;
+    }
+
+    String user() {
+        return user;
+    }
+
+    String csvFile() {
+        return csvFile;
+    }
+
+    String state() {
+        return state;
+    }
+
+    int limit() {
+        return limit;
     }
 
     static ExtractArguments parse(final String[] args) {
