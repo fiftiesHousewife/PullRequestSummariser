@@ -80,7 +80,15 @@ Requires a valid `GITHUB_TOKEN` with read access to this repository.
   -Dhttps.proxyHost=proxy.corp.com -Dhttps.proxyPort=8080
 ```
 
-The same proxy properties work for extraction (`run` task). The tool uses Java's `ProxySelector.getDefault()` so it respects standard JVM proxy system properties (`https.proxyHost`, `https.proxyPort`, `http.nonProxyHosts`).
+If the proxy requires authentication:
+
+```bash
+./gradlew :PullRequestSummariser:integrationTest \
+  -Dhttps.proxyHost=proxy.corp.com -Dhttps.proxyPort=8080 \
+  -Dhttps.proxyUser=your_username -Dhttps.proxyPassword=your_password
+```
+
+The same proxy properties work for extraction (`run` task). The tool uses Java's `ProxySelector.getDefault()` with an `Authenticator` so it respects standard JVM proxy system properties.
 
 ## Usage
 
