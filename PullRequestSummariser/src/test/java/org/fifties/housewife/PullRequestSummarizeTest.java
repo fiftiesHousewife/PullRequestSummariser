@@ -13,7 +13,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrSummarizeTest {
+class PullRequestSummarizeTest {
 
     @Test
     void loadsPullRequestsFromJsonFiles(@TempDir final Path tempDir) throws Exception {
@@ -30,13 +30,13 @@ class PrSummarizeTest {
     }
 
     @Test
-    void returnsEmptyListWhenNoPrFiles(@TempDir final Path tempDir) throws Exception {
+    void returnsEmptyListWhenNoPullRequestFiles(@TempDir final Path tempDir) throws Exception {
         final List<JsonObject> pullRequests = PullRequestSummarize.loadPullRequests(tempDir);
         assertThat(pullRequests).isEmpty();
     }
 
     @Test
-    void ignoresNonPrJsonFiles(@TempDir final Path tempDir) throws Exception {
+    void ignoresNonPullRequestJsonFiles(@TempDir final Path tempDir) throws Exception {
         writePullRequestFile(tempDir, 1, "Real pull request");
         Files.writeString(tempDir.resolve("extraction_meta.json"), "{}");
 

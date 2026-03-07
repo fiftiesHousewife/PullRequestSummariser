@@ -16,7 +16,6 @@ final class ProxyAwareHttpClient {
         final String proxyUser = System.getProperty("https.proxyUser");
         final String proxyPassword = System.getProperty("https.proxyPassword");
         if (proxyUser != null && proxyPassword != null) {
-            enableBasicAuthForTunneling();
             builder.authenticator(new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
@@ -25,12 +24,5 @@ final class ProxyAwareHttpClient {
             });
         }
         return builder.build();
-    }
-
-    private static void enableBasicAuthForTunneling() {
-        final String property = "jdk.http.auth.tunneling.disabledSchemes";
-        if (System.getProperty(property) == null) {
-            System.setProperty(property, "");
-        }
     }
 }

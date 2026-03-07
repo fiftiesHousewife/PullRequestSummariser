@@ -20,6 +20,10 @@ repositories {
 
 application {
     mainClass.set("org.fifties.housewife.Main")
+    applicationDefaultJvmArgs = listOf(
+        "-Djdk.http.auth.tunneling.disabledSchemes=",
+        "-Djdk.http.auth.proxying.disabledSchemes="
+    )
 }
 
 dependencies {
@@ -31,6 +35,10 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.assertj.core)
+}
+
+tasks.named<JavaExec>("run") {
+    workingDir = rootProject.projectDir
 }
 
 tasks.test {
@@ -47,12 +55,17 @@ tasks.register<Test>("integrationTest") {
     description = "Runs integration tests against the live GitHub API (requires GITHUB_TOKEN)"
     classpath = sourceSets["test"].runtimeClasspath
     testClassesDirs = sourceSets["test"].output.classesDirs
-    listOf(
+    val proxyProperties = listOf(
         "https.proxyHost", "https.proxyPort", "https.proxyUser", "https.proxyPassword",
         "http.proxyHost", "http.proxyPort", "http.nonProxyHosts"
-    ).forEach { property ->
+    )
+    proxyProperties.forEach { property ->
         systemProperty(property, System.getProperty(property) ?: "")
     }
+    jvmArgs(
+        "-Djdk.http.auth.tunneling.disabledSchemes=",
+        "-Djdk.http.auth.proxying.disabledSchemes="
+    )
 }
 
 tasks.jacocoTestReport {
@@ -63,10 +76,23 @@ tasks.jacocoTestReport {
 }
 
 tasks.jacocoTestCoverageVerification {
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    "org/fifties/housewife/PullRequestExtract.class",
+                    "org/fifties/housewife/CsvPullRequestExtract.class",
+                    "org/fifties/housewife/GitHubClient.class",
+                    "org/fifties/housewife/ProxyAwareHttpClient*.class",
+                    "org/fifties/housewife/Main.class"
+                )
+            }
+        })
+    )
     violationRules {
         rule {
             limit {
-                minimum = "0.55".toBigDecimal()
+                minimum = "0.75".toBigDecimal()
             }
         }
     }

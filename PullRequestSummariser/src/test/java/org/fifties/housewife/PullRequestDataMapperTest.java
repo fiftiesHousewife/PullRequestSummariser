@@ -7,12 +7,12 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrDataMapperTest {
+class PullRequestDataMapperTest {
 
     private final PullRequestDataMapper mapper = new PullRequestDataMapper();
 
     @Test
-    void mapsBasicPrMetadata() {
+    void mapsBasicPullRequestMetadata() {
         final JsonObject detail = buildMinimalPrDetail();
         final JsonObject result = mapper.map(detail, new JsonArray(), new JsonArray(),
                 new JsonArray(), new JsonArray(), new JsonArray());
@@ -99,6 +99,73 @@ class PrDataMapperTest {
                 () -> assertThat(firstReview.get("state").getAsString()).isEqualTo("APPROVED"),
                 () -> assertThat(firstReview.get("body").getAsString()).isEqualTo("Looks good")
         );
+    }
+
+    @Test
+    void mapsReviewComments() {
+        final JsonArray reviewComments = new JsonArray();
+        final JsonObject comment = new JsonObject();
+        final JsonObject commentUser = new JsonObject();
+        commentUser.addProperty("login", "reviewer2");
+        comment.add("user", commentUser);
+        comment.addProperty("body", "Nit: rename this");
+        comment.addProperty("path", "src/App.java");
+        comment.addProperty("line", 42);
+        comment.addProperty("created_at", "2024-01-03T00:00:00Z");
+        reviewComments.add(comment);
+
+        final JsonObject result = mapper.map(buildMinimalPrDetail(), new JsonArray(), new JsonArray(),
+                reviewComments, new JsonArray(), new JsonArray());
+
+        final JsonObject first = result.getAsJsonArray("review_comments").get(0).getAsJsonObject();
+        assertAll(
+                () -> assertThat(first.get("user").getAsString()).isEqualTo("reviewer2"),
+                () -> assertThat(first.get("body").getAsString()).isEqualTo("Nit: rename this"),
+                () -> assertThat(first.get("path").getAsString()).isEqualTo("src/App.java"),
+                () -> assertThat(first.get("line").getAsInt()).isEqualTo(42)
+        );
+    }
+
+    @Test
+    void mapsIssueComments() {
+        final JsonArray issueComments = new JsonArray();
+        final JsonObject comment = new JsonObject();
+        final JsonObject commentUser = new JsonObject();
+        commentUser.addProperty("login", "commenter");
+        comment.add("user", commentUser);
+        comment.addProperty("body", "Looks great!");
+        comment.addProperty("created_at", "2024-01-04T00:00:00Z");
+        issueComments.add(comment);
+
+        final JsonObject result = mapper.map(buildMinimalPrDetail(), new JsonArray(), new JsonArray(),
+                new JsonArray(), issueComments, new JsonArray());
+
+        final JsonObject first = result.getAsJsonArray("issue_comments").get(0).getAsJsonObject();
+        assertAll(
+                () -> assertThat(first.get("user").getAsString()).isEqualTo("commenter"),
+                () -> assertThat(first.get("body").getAsString()).isEqualTo("Looks great!")
+        );
+    }
+
+    @Test
+    void mapsMilestoneWhenPresent() {
+        final JsonObject detail = buildMinimalPrDetail();
+        final JsonObject milestone = new JsonObject();
+        milestone.addProperty("title", "v1.0");
+        detail.add("milestone", milestone);
+
+        final JsonObject result = mapper.map(detail, new JsonArray(), new JsonArray(),
+                new JsonArray(), new JsonArray(), new JsonArray());
+
+        assertThat(result.get("milestone").getAsString()).isEqualTo("v1.0");
+    }
+
+    @Test
+    void mapsMilestoneAsNullWhenAbsent() {
+        final JsonObject result = mapper.map(buildMinimalPrDetail(), new JsonArray(), new JsonArray(),
+                new JsonArray(), new JsonArray(), new JsonArray());
+
+        assertThat(result.get("milestone").isJsonNull()).isTrue();
     }
 
     private JsonObject buildMinimalPrDetail() {

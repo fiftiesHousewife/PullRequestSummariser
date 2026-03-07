@@ -7,12 +7,12 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrMarkdownWriterTest {
+class PullRequestMarkdownWriterTest {
 
     private final PullRequestMarkdownWriter writer = new PullRequestMarkdownWriter(500);
 
     @Test
-    void includesPrTitleAndNumber() {
+    void includesPullRequestTitleAndNumber() {
         final String markdown = writer.write(buildPullRequest(1, "Add login feature", "open", false));
         assertThat(markdown).contains("# Pull Request #1: Add login feature");
     }
@@ -45,7 +45,7 @@ class PrMarkdownWriterTest {
     }
 
     @Test
-    void includesPrBody() {
+    void includesPullRequestBody() {
         final JsonObject pr = buildPullRequest(5, "Feature", "open", false);
         pr.addProperty("body", "This pull request adds a great feature.");
         final String markdown = writer.write(pr);

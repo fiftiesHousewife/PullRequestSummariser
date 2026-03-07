@@ -116,7 +116,7 @@ class RepoMarkdownWriterTest {
     }
 
     @Test
-    void includesPrIndexTable() {
+    void includesPullRequestIndexTable() {
         final String markdown = writer.write(
                 List.of(buildPullRequest(1, "open", false)), new JsonObject());
 
