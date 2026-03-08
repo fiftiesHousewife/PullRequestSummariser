@@ -40,6 +40,17 @@ Set the token in your terminal before running extraction:
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
+### GitHub Enterprise Server
+
+For GitHub Enterprise Server, set the `GITHUB_API_URL` environment variable to your instance's API base URL:
+
+```bash
+export GITHUB_API_URL=https://github.mycompany.com/api/v3
+export GITHUB_TOKEN=ghp_your_token_here
+```
+
+When `GITHUB_API_URL` is not set, the tool defaults to `https://api.github.com`. All API paths, authentication, pagination, and rate limiting work identically on GitHub Enterprise — only the base URL changes.
+
 ## Build
 
 From the repository root:
@@ -94,10 +105,11 @@ The same proxy properties work for extraction (`run` task). The tool uses Java's
 
 ### Step 1: Extract Pull Request Data (online)
 
-Set your GitHub token:
+Set your GitHub token (and optionally `GITHUB_API_URL` for GitHub Enterprise):
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
+export GITHUB_API_URL=https://github.mycompany.com/api/v3  # optional, for GHE
 ```
 
 Extract from a specific repository:
@@ -291,7 +303,8 @@ PullRequestSummariser/
     │   ├── PullRequestUrl.java            — parses GitHub PR URLs
     │   ├── ExtractArguments.java          — CLI argument parsing for extract
     │   ├── PullRequestSummarize.java      — offline summary orchestrator
-    │   ├── GitHubClient.java              — HTTP client with pagination and rate limiting
+    │   ├── GitHubClient.java              — GitHub API client with pagination
+    │   ├── RateLimitedHttpSender.java    — HTTP transport with auth and rate limiting
     │   ├── PullRequestDataMapper.java     — maps API responses to consolidated JSON
     │   ├── PullRequestMarkdownWriter.java — per-PR markdown generation
     │   ├── DiffMarkdownWriter.java        — diff section markdown

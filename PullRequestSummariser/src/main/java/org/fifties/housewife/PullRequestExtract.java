@@ -110,7 +110,7 @@ public final class PullRequestExtract {
 
     public static void main(final String[] args) throws Exception {
         final ExtractArguments arguments = ExtractArguments.parse(args);
-        final GitHubClient client = new GitHubClient(requireToken());
+        final GitHubClient client = GitHubClient.fromEnvironment(requireToken());
 
         if (arguments.csvFile() != null) {
             new CsvPullRequestExtract(client).extractFromCsv(Paths.get(arguments.csvFile()));
