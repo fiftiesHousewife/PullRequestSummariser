@@ -8,11 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 class ExtractArgumentsTest {
 
     @Test
-    void parsesRepoArgument() {
+    void parsesSingleRepoArgument() {
         final ExtractArguments args = ExtractArguments.parse(new String[]{"--repo", "owner/repo"});
         assertAll(
-                () -> assertThat(args.repo()).isEqualTo("owner/repo"),
-                () -> assertThat(args.user()).isNull(),
+                () -> assertThat(args.repos()).containsExactly("owner/repo"),
+                () -> assertThat(args.users()).isEmpty(),
                 () -> assertThat(args.csvFile()).isNull(),
                 () -> assertThat(args.state()).isEqualTo("all"),
                 () -> assertThat(args.limit()).isZero()
@@ -20,11 +20,35 @@ class ExtractArgumentsTest {
     }
 
     @Test
-    void parsesUserArgument() {
+    void parsesMultipleRepoArguments() {
+        final ExtractArguments args = ExtractArguments.parse(
+                new String[]{"--repo", "owner/repo1", "--repo", "owner/repo2"});
+        assertThat(args.repos()).containsExactly("owner/repo1", "owner/repo2");
+    }
+
+    @Test
+    void parsesSingleUserArgument() {
         final ExtractArguments args = ExtractArguments.parse(new String[]{"--user", "someone"});
         assertAll(
-                () -> assertThat(args.user()).isEqualTo("someone"),
-                () -> assertThat(args.repo()).isNull()
+                () -> assertThat(args.users()).containsExactly("someone"),
+                () -> assertThat(args.repos()).isEmpty()
+        );
+    }
+
+    @Test
+    void parsesMultipleUserArguments() {
+        final ExtractArguments args = ExtractArguments.parse(
+                new String[]{"--user", "alice", "--user", "bob"});
+        assertThat(args.users()).containsExactly("alice", "bob");
+    }
+
+    @Test
+    void parsesUserAndRepoTogether() {
+        final ExtractArguments args = ExtractArguments.parse(
+                new String[]{"--user", "alice", "--repo", "my-service"});
+        assertAll(
+                () -> assertThat(args.users()).containsExactly("alice"),
+                () -> assertThat(args.repos()).containsExactly("my-service")
         );
     }
 
@@ -33,8 +57,8 @@ class ExtractArgumentsTest {
         final ExtractArguments args = ExtractArguments.parse(new String[]{"--csv", "prs.csv"});
         assertAll(
                 () -> assertThat(args.csvFile()).isEqualTo("prs.csv"),
-                () -> assertThat(args.repo()).isNull(),
-                () -> assertThat(args.user()).isNull()
+                () -> assertThat(args.repos()).isEmpty(),
+                () -> assertThat(args.users()).isEmpty()
         );
     }
 
@@ -52,5 +76,17 @@ class ExtractArgumentsTest {
     void defaultsStateToAll() {
         final ExtractArguments args = ExtractArguments.parse(new String[]{"--repo", "o/r"});
         assertThat(args.state()).isEqualTo("all");
+    }
+
+    @Test
+    void repoListIsUnmodifiable() {
+        final ExtractArguments args = ExtractArguments.parse(new String[]{"--repo", "o/r"});
+        assertThat(args.repos()).isUnmodifiable();
+    }
+
+    @Test
+    void userListIsUnmodifiable() {
+        final ExtractArguments args = ExtractArguments.parse(new String[]{"--user", "someone"});
+        assertThat(args.users()).isUnmodifiable();
     }
 }

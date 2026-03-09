@@ -114,10 +114,8 @@ public final class PullRequestExtract {
 
         if (arguments.csvFile() != null) {
             new CsvPullRequestExtract(client).extractFromCsv(Paths.get(arguments.csvFile()));
-        } else if (arguments.user() != null) {
-            extractAllReposForUser(client, arguments);
         } else {
-            new PullRequestExtract(client).extractRepo(arguments.repo(), arguments.state(), arguments.limit());
+            new ExtractOrchestrator(client).run(arguments);
         }
     }
 
@@ -130,21 +128,5 @@ public final class PullRequestExtract {
             System.exit(1);
         }
         return token;
-    }
-
-    private static void extractAllReposForUser(final GitHubClient client, final ExtractArguments arguments)
-            throws IOException, InterruptedException {
-        final List<String> repos = client.fetchUserRepos(arguments.user());
-        if (repos.isEmpty()) {
-            log.info("No repos found for user '" + arguments.user() + "'");
-            System.exit(1);
-        }
-        log.info("Found " + repos.size() + " repos for " + arguments.user());
-        final PullRequestExtract extractor = new PullRequestExtract(client);
-        int total = 0;
-        for (final String repoName : repos) {
-            total += extractor.extractRepo(repoName, arguments.state(), arguments.limit());
-        }
-        log.info("Total pull requests extracted: " + total);
     }
 }

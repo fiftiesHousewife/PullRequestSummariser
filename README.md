@@ -118,11 +118,31 @@ Extract from a specific repository:
 ./gradlew :PullRequestSummariser:run --args="extract --repo owner/repo"
 ```
 
+Extract from multiple repositories:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --repo owner/repo1 --repo owner/repo2"
+```
+
 Extract from all repositories for a user:
 
 ```bash
 ./gradlew :PullRequestSummariser:run --args="extract --user username"
 ```
+
+Extract from multiple users:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --user alice --user bob"
+```
+
+Combine `--user` and `--repo` to filter a user's repos by name. The `--repo` value is matched as a case-insensitive substring against the repository name:
+
+```bash
+./gradlew :PullRequestSummariser:run --args="extract --user alice --repo service"
+```
+
+This extracts from all of `alice`'s repos whose name contains "service" (e.g. `alice/payment-service`, `alice/service-common`).
 
 Extract from a CSV file of pull request URLs:
 
@@ -143,7 +163,7 @@ Pull requests are grouped by repository so that repo-level analysis is performed
 Optional flags (for `--repo` and `--user` modes):
 
 - `--state all|open|closed` — filter by PR state (default: `all`)
-- `--limit N` — limit the number of PRs extracted
+- `--limit N` — limit the number of PRs extracted per repository
 
 ### Rate Limiting
 
@@ -302,6 +322,8 @@ PullRequestSummariser/
     │   ├── CsvPullRequestReader.java      — parses CSV file of PR URLs
     │   ├── PullRequestUrl.java            — parses GitHub PR URLs
     │   ├── ExtractArguments.java          — CLI argument parsing for extract
+    │   ├── ExtractOrchestrator.java      — resolves repos from --user/--repo combinations
+    │   ├── RepoNameFilter.java           — partial and full repo name matching
     │   ├── PullRequestSummarize.java      — offline summary orchestrator
     │   ├── GitHubClient.java              — GitHub API client with pagination
     │   ├── RateLimitedHttpSender.java    — HTTP transport with auth and rate limiting

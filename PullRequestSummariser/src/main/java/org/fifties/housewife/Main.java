@@ -35,8 +35,9 @@ public final class Main {
 
     private static void printUsage() {
         log.info("Usage:\n"
-                + "  extract   --user <username>\n"
-                + "  extract   --repo <owner/repo> [--state all|open|closed] [--limit N]\n"
+                + "  extract   --repo <owner/repo> [--repo ...] [--state all|open|closed] [--limit N]\n"
+                + "  extract   --user <username> [--user ...] [--state all|open|closed] [--limit N]\n"
+                + "  extract   --user <username> --repo <partial-name> [--repo ...]\n"
                 + "  extract   --csv <file.csv>\n"
                 + "  summarize --input <dirs...> [--max-diff-lines N]");
     }

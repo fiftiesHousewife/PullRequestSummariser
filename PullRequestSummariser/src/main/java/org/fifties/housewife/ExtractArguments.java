@@ -1,31 +1,35 @@
 package org.fifties.housewife;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 final class ExtractArguments {
 
-    private final String repo;
-    private final String user;
+    private final List<String> repos;
+    private final List<String> users;
     private final String csvFile;
     private final String state;
     private final int limit;
 
-    private ExtractArguments(final String repo, final String user, final String csvFile,
-                             final String state, final int limit) {
-        this.repo = repo;
-        this.user = user;
+    private ExtractArguments(final List<String> repos, final List<String> users,
+                             final String csvFile, final String state, final int limit) {
+        this.repos = Collections.unmodifiableList(repos);
+        this.users = Collections.unmodifiableList(users);
         this.csvFile = csvFile;
         this.state = state;
         this.limit = limit;
     }
 
-    String repo() {
-        return repo;
+    List<String> repos() {
+        return repos;
     }
 
-    String user() {
-        return user;
+    List<String> users() {
+        return users;
     }
 
     String csvFile() {
@@ -41,8 +45,8 @@ final class ExtractArguments {
     }
 
     static ExtractArguments parse(final String[] args) {
-        String repo = null;
-        String user = null;
+        final List<String> repos = new ArrayList<>();
+        final List<String> users = new ArrayList<>();
         String csvFile = null;
         String state = "all";
         int limit = 0;
@@ -50,10 +54,10 @@ final class ExtractArguments {
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--repo":
-                    repo = args[++i];
+                    repos.add(args[++i]);
                     break;
                 case "--user":
-                    user = args[++i];
+                    users.add(args[++i]);
                     break;
                 case "--csv":
                     csvFile = args[++i];
@@ -71,18 +75,19 @@ final class ExtractArguments {
             }
         }
 
-        if (repo == null && user == null && csvFile == null) {
+        if (repos.isEmpty() && users.isEmpty() && csvFile == null) {
             printUsage();
             System.exit(1);
         }
 
-        return new ExtractArguments(repo, user, csvFile, state, limit);
+        return new ExtractArguments(repos, users, csvFile, state, limit);
     }
 
     private static void printUsage() {
         log.info("Usage:\n"
-                + "  extract --repo owner/repo [--state all|open|closed] [--limit N]\n"
-                + "  extract --user username [--state all|open|closed] [--limit N]\n"
+                + "  extract --repo owner/repo [--repo owner/repo2] [--state all|open|closed] [--limit N]\n"
+                + "  extract --user username [--user username2] [--state all|open|closed] [--limit N]\n"
+                + "  extract --user username --repo partial-name [--state all|open|closed] [--limit N]\n"
                 + "  extract --csv file.csv");
     }
 }
